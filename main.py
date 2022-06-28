@@ -19,6 +19,7 @@ from test import evaluation, visualization, test
 from torch.nn import functional as F
 
 def count_parameters(model):
+    # 计算参数量
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
