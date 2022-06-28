@@ -17,6 +17,7 @@ import torch.backends.cudnn as cudnn
 import argparse
 from test import evaluation, visualization, test
 from torch.nn import functional as F
+from tqdm import tqdm
 
 def count_parameters(model):
     # 计算参数量
@@ -70,11 +71,11 @@ def train(_class_):
     print(device)
 
     data_transform, gt_transform = get_data_transforms(image_size, image_size)
-    train_path = './mvtec/' + _class_ + '/train'
-    test_path = './mvtec/' + _class_
+    train_path = '../../dataset/MVTec AD/' + _class_ + '/train'
+    test_path = '../../dataset/MVTec AD/' + _class_
     ckp_path = './checkpoints/' + 'wres50_'+_class_+'.pth'
-    if not os.path.exists(ckp_path):
-        os.makdir(ckp_path)
+    if not os.path.exists('./checkpoints'):
+        os.makedirs('./checkpoints', exist_ok=True)
     train_data = ImageFolder(root=train_path, transform=data_transform)
     test_data = MVTecDataset(root=test_path, transform=data_transform, gt_transform=gt_transform, phase="test")
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
@@ -94,7 +95,7 @@ def train(_class_):
         bn.train()
         decoder.train()
         loss_list = []
-        for img, label in train_dataloader:
+        for img, label in tqdm(train_dataloader, 'train{} epoch{}'.format(_class_, epoch+1)):
             img = img.to(device)
             inputs = encoder(img)
             outputs = decoder(bn(inputs))#bn(inputs))
@@ -117,8 +118,9 @@ def train(_class_):
 if __name__ == '__main__':
 
     setup_seed(111)
-    item_list = ['carpet', 'bottle', 'hazelnut', 'leather', 'cable', 'capsule', 'grid', 'pill',
-                 'transistor', 'metal_nut', 'screw','toothbrush', 'zipper', 'tile', 'wood']
+    # item_list = ['carpet', 'bottle', 'hazelnut', 'leather', 'cable', 'capsule', 'grid', 'pill',
+    #              'transistor', 'metal_nut', 'screw','toothbrush', 'zipper', 'tile', 'wood']
+    item_list = ['screw', 'hazelnut', 'cable', 'transistor']
     for i in item_list:
         train(i)
 
