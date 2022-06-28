@@ -72,6 +72,8 @@ def train(_class_):
     train_path = './mvtec/' + _class_ + '/train'
     test_path = './mvtec/' + _class_
     ckp_path = './checkpoints/' + 'wres50_'+_class_+'.pth'
+    if not os.path.exists(ckp_path):
+        os.makdir(ckp_path)
     train_data = ImageFolder(root=train_path, transform=data_transform)
     test_data = MVTecDataset(root=test_path, transform=data_transform, gt_transform=gt_transform, phase="test")
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
