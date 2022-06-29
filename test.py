@@ -186,7 +186,9 @@ def visualization(_class_):
             anomaly_map = gaussian_filter(anomaly_map, sigma=4)
             ano_map = min_max_norm(anomaly_map)
             ano_map = cvt2heatmap(ano_map*255)
-            img = cv2.cvtColor(img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255, cv2.COLOR_BGR2RGB)
+            ano_map = cv2.cvtColor(ano_map, cv2.COLOR_BGR2RGB)
+            # img = cv2.cvtColor(img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255, cv2.COLOR_RGB2BGR)
+            img = img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255
             img = np.uint8(min_max_norm(img)*255)
             if not os.path.exists('./results_all/'+_class_):
                os.makedirs('./results_all/'+_class_, exist_ok=True)
@@ -215,8 +217,9 @@ def visualization(_class_):
             # plt.show()
 
 
-            gt = gt.cpu().numpy().astype(int)[0][0]*255
-            axes[2].imshow(gt)
+            # gt = gt.cpu().numpy().astype(int)[0][0]*255
+            gt = gt.permute(0, 2, 3, 1).cpu().numpy()[0].squeeze()*255
+            axes[2].imshow(gt, cmap='gray', vmin=0, vmax=255)
             plt.savefig(os.path.join(save_path, '{}.jpg'.format(count)), dpi=30, bbox_inches='tight')
             plt.close()
             #cv2.imwrite('./results/'+_class_+'_'+str(count)+'_'+'gt.png', gt)
@@ -443,6 +446,6 @@ def detection(encoder, bn, decoder, dataloader,device,_class_):
 
 
 if __name__ == '__main__':
-    vis_class = ['transistor', 'screw', 'hazelnut', 'cable']
+    vis_class = ['transistor', 'screw', 'hazelnut', 'cable', 'metal_nut', 'tile', 'wood']
     for _class_ in vis_class:
         visualization(_class_)
