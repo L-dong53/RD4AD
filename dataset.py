@@ -6,6 +6,7 @@ import glob
 from torchvision.datasets import MNIST, CIFAR10, FashionMNIST, ImageFolder
 import numpy as np
 
+
 def get_data_transforms(size, isize):
     mean_train = [0.485, 0.456, 0.406]
     std_train = [0.229, 0.224, 0.225]
@@ -13,7 +14,7 @@ def get_data_transforms(size, isize):
         transforms.Resize((size, size)),
         transforms.ToTensor(),
         transforms.CenterCrop(isize),
-        #transforms.CenterCrop(args.input_size),
+        # transforms.CenterCrop(args.input_size),
         transforms.Normalize(mean=mean_train,
                              std=std_train)])
     gt_transforms = transforms.Compose([
@@ -22,6 +23,47 @@ def get_data_transforms(size, isize):
         transforms.ToTensor()])
     return data_transforms, gt_transforms
 
+
+class CIFAR10Dataset(torch.utils.data.Dataset):
+    def __init__(self, dataset_root='../../dataset/CIFAR-10', norm_cls=0, phase='train'):
+        self.transforms = transforms.Compose([
+            transforms.Resize((32, 32)),
+            # transforms.CenterCrop(28),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        ])
+        self.data_path = dataset_root
+        self.norm_cls = norm_cls
+        self.phase = phase
+        self.dataset = ImageFolder(os.path.join(self.data_path, phase), transform=self.transforms)
+        print(self.dataset.class_to_idx)
+        if self.phase == 'train':
+            train_path = os.path.join(self.data_path, '{}/{}'.format(self.phase, str(self.norm_cls)))
+            img_names = os.listdir(train_path)
+            self.img_path = [os.path.join(train_path, img_name) for img_name in img_names]
+
+    def __len__(self):
+        if self.phase == 'train':
+            return len(self.img_path)
+        else:
+            return len(self.dataset)
+
+    def __getitem__(self, idx):
+        # img, label = self.dataset[idx]  # img:FloatTensor 0-1
+        if self.phase == 'train' and idx < len(self.img_path):
+            img = Image.open(self.img_path[idx]).convert('RGB')
+            img = self.transforms(img)
+            label = 0   # normal label is 0
+            return img, label
+        elif idx < len(self.dataset):
+            img, label_s = self.dataset[idx]  # img:FloatTensor 0-1 test
+            if label_s == self.norm_cls:
+                label = 0
+            else:
+                label = 1  # abnormal label is 1
+            return img, label
+        else:
+            raise IndexError('the index of dataset out of range!')
 
 
 class MVTecDataset(torch.utils.data.Dataset):
@@ -83,12 +125,12 @@ class MVTecDataset(torch.utils.data.Dataset):
 
         return img, gt, label, img_type
 
-def load_data(dataset_name='mnist',normal_class=0,batch_size='16'):
 
+def load_data(dataset_name='mnist', normal_class=0, batch_size='16'):
     if dataset_name == 'cifar10':
         img_transform = transforms.Compose([
             transforms.Resize((32, 32)),
-            #transforms.CenterCrop(28),
+            # transforms.CenterCrop(28),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
         ])
@@ -141,7 +183,6 @@ def load_data(dataset_name='mnist',normal_class=0,batch_size='16'):
         test_set = FashionMNIST("./Dataset/FashionMNIST/test", train=False, download=True, transform=img_transform)
         print("Test Train Data:", test_set.data.shape)
 
-
     elif dataset_name == 'retina':
         data_path = 'Dataset/OCT2017/train'
 
@@ -171,3 +212,9 @@ def load_data(dataset_name='mnist',normal_class=0,batch_size='16'):
     )
 
     return train_dataloader, test_dataloader
+
+
+if __name__ == '__main__':
+    dataset = CIFAR10Dataset(r'E:\datasets\CIFAR-10', phase='test')
+    img, label = dataset[8000]
+    print(label)
