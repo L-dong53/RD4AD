@@ -9,6 +9,8 @@ from dataset import MVTecDataset
 from torch.nn import functional as F
 from sklearn.metrics import roc_auc_score
 import cv2
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.metrics import auc
 from skimage import measure
@@ -19,7 +21,6 @@ from scipy.ndimage import gaussian_filter
 from sklearn import manifold
 from matplotlib.ticker import NullFormatter
 from scipy.spatial.distance import pdist
-import matplotlib
 import pickle
 
 def cal_anomaly_map(fs_list, ft_list, out_size=224, amap_mode='mul'):
@@ -140,8 +141,9 @@ def visualization(_class_):
     print(device)
 
     data_transform, gt_transform = get_data_transforms(256, 256)
-    test_path = '../mvtec/' + _class_
-    ckp_path = './checkpoints/' + 'rm_1105_wres50_ff_mm_'+_class_+'.pth'
+    test_path = '../../dataset/MVTec AD/' + _class_
+    ckp_path = ckp_path = './checkpoints/' + 'wres50_'+_class_+'.pth'
+    save_path = os.path.join('./results_all/', _class_)
     test_data = MVTecDataset(root=test_path, transform=data_transform, gt_transform=gt_transform, phase="test")
     test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False)
 
@@ -186,21 +188,37 @@ def visualization(_class_):
             ano_map = cvt2heatmap(ano_map*255)
             img = cv2.cvtColor(img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255, cv2.COLOR_BGR2RGB)
             img = np.uint8(min_max_norm(img)*255)
-            #if not os.path.exists('./results_all/'+_class_):
-            #    os.makedirs('./results_all/'+_class_)
+            if not os.path.exists('./results_all/'+_class_):
+               os.makedirs('./results_all/'+_class_, exist_ok=True)
+            
+            fig, axes = plt.subplots(1, 3, figsize=(90,30), dpi=30)
+            for ax in axes:
+                ax.axes.xaxis.set_visible(False)
+                ax.axes.yaxis.set_visible(False)
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+            plt.subplots_adjust(hspace = 0.1, wspace = 0.1)
+            axes[0].imshow(img)
             #cv2.imwrite('./results_all/'+_class_+'/'+str(count)+'_'+'org.png',img)
             #plt.imshow(img)
             #plt.axis('off')
             #plt.savefig('org.png')
             #plt.show()
             ano_map = show_cam_on_image(img, ano_map)
+            axes[1].imshow(ano_map)
             #cv2.imwrite('./results_all/'+_class_+'/'+str(count)+'_'+'ad.png', ano_map)
-            plt.imshow(ano_map)
-            plt.axis('off')
+            # plt.imshow(ano_map)
+            # plt.axis('off')
             #plt.savefig('ad.png')
-            plt.show()
+            # plt.show()
+
 
             gt = gt.cpu().numpy().astype(int)[0][0]*255
+            axes[2].imshow(gt)
+            plt.savefig(os.path.join(save_path, '{}.jpg'.format(count)), dpi=30, bbox_inches='tight')
+            plt.close()
             #cv2.imwrite('./results/'+_class_+'_'+str(count)+'_'+'gt.png', gt)
 
             #b, c, h, w = inputs[2].shape
@@ -224,7 +242,7 @@ def visualization(_class_):
                 #plt.show()
             #    name+=1
             count += 1
-            #if count>20:
+            # if count>20:
             #    return 0
                 #assert 1==2
 
@@ -422,3 +440,9 @@ def detection(encoder, bn, decoder, dataloader,device,_class_):
         auroc_sp_max = round(roc_auc_score(gt_list_sp, prmax_list_sp), 4)
         auroc_sp_mean = round(roc_auc_score(gt_list_sp, prmean_list_sp), 4)
     return auroc_sp_max, auroc_sp_mean
+
+
+if __name__ == '__main__':
+    vis_class = ['transistor', 'screw', 'hazelnut', 'cable']
+    for _class_ in vis_class:
+        visualization(_class_)
