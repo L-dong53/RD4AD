@@ -2,5 +2,8 @@ cable: pix:97.2,img:96.5,pro:91
 transistor: 93.3,96.8,80.3
 hazelnut:98.9,100,95.4
 screw:99.6,98.9,98.1
+tile:95.6, 99.5, 90.5
+wood:95.4,99.5,91.3
+metal_nut:97.3,100,92.3
 
 
