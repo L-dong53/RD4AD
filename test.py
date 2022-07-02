@@ -164,7 +164,7 @@ def visualization(_class_, dataset=None):
         ckp_path = './checkpoints/' + 'wres50_' + str(_class_) + '.pth'
         save_path = os.path.join('./results_all/', str(_class_))
         test_data = CIFAR10Dataset(norm_cls=_class_, phase='test')
-        test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False)
+        test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True)
     else:
         test_path = '../../dataset/MVTec AD/' + _class_
         ckp_path = './checkpoints/' + 'wres50_' + _class_ + '.pth'
@@ -190,6 +190,8 @@ def visualization(_class_, dataset=None):
     with torch.no_grad():
         if dataset:
             for img, label in test_dataloader:
+                if count >=50:
+                    break
                 decoder.eval()
                 bn.eval()
 
@@ -503,6 +505,7 @@ def detection(encoder, bn, decoder, dataloader, device, _class_):
 
 
 if __name__ == '__main__':
-    vis_class = ['transistor', 'screw', 'hazelnut', 'cable', 'metal_nut', 'tile', 'wood']
+    # vis_class = ['transistor', 'screw', 'hazelnut', 'cable', 'metal_nut', 'tile', 'wood']
+    vis_class = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     for _class_ in vis_class:
         visualization(_class_)
