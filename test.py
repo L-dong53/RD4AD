@@ -206,10 +206,10 @@ def visualization(_class_, dataset=None):
                 # img = cv2.cvtColor(img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255, cv2.COLOR_RGB2BGR)
                 img = img.permute(0, 2, 3, 1).cpu().numpy()[0] * 255
                 img = np.uint8(min_max_norm(img) * 255)
-                if not os.path.exists('./results_all/' + _class_):
-                    os.makedirs('./results_all/' + _class_, exist_ok=True)
+                if not os.path.exists('./results_all/' + str(_class_)):
+                    os.makedirs('./results_all/' + str(_class_), exist_ok=True)
 
-                fig, axes = plt.subplots(1, 3, figsize=(90, 30), dpi=30)
+                fig, axes = plt.subplots(1, 2, figsize=(90, 30), dpi=30)
                 for ax in axes:
                     ax.axes.xaxis.set_visible(False)
                     ax.axes.yaxis.set_visible(False)
@@ -221,8 +221,8 @@ def visualization(_class_, dataset=None):
                 axes[0].imshow(img)
                 ano_map = show_cam_on_image(img, ano_map)
                 axes[1].imshow(ano_map)
-                gt = gt.permute(0, 2, 3, 1).cpu().numpy()[0].squeeze() * 255
-                axes[2].imshow(gt, cmap='gray', vmin=0, vmax=255)
+                # gt = gt.permute(0, 2, 3, 1).cpu().numpy()[0].squeeze() * 255
+                # axes[2].imshow(gt, cmap='gray', vmin=0, vmax=255)
                 plt.savefig(os.path.join(save_path, '{}.jpg'.format(count)), dpi=30, bbox_inches='tight')
                 plt.close()
                 count += 1
@@ -508,4 +508,4 @@ if __name__ == '__main__':
     # vis_class = ['transistor', 'screw', 'hazelnut', 'cable', 'metal_nut', 'tile', 'wood']
     vis_class = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     for _class_ in vis_class:
-        visualization(_class_)
+        visualization(_class_, dataset='CIFAR-10')
